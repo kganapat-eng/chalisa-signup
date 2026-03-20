@@ -431,7 +431,7 @@ header .subtitle {
       <div class="form-row single">
         <div class="form-group">
           <label>Notes / Special Message</label>
-          <textarea id="notes" placeholder="e.g. We will bring flowers / fruits Slot-1 …"></textarea>
+          <textarea id="notes" placeholder="e.g. We will bring flowers / fruits / lamps for Slot 1, we need a microphone, we are coming from outstation…"></textarea>
         </div>
       </div>
 
@@ -631,8 +631,16 @@ function submitRegistration() {
     return;
   }
 
-  // ── Generate delete code & save ─────────────────────────────
-  const deleteCode = String(Math.floor(100000 + Math.random() * 900000));
+  // ── Reuse existing delete code if same team+phone already registered ──
+  const existingEntry = registrations.find(r =>
+    r.teamName.toLowerCase() === nameLower &&
+    r.phone.replace(/\s+/g,"") === phoneClean
+  );
+  const deleteCode = existingEntry
+    ? existingEntry.deleteCode
+    : String(Math.floor(100000 + Math.random() * 900000));
+  const isReturning = !!existingEntry;
+
   const reg = {
     id: Date.now().toString(),
     teamName, leaderName, phone, email, memberCount, city, notes,
@@ -650,10 +658,10 @@ function submitRegistration() {
   renderAll();
 
   // ── Show delete code in full-screen overlay (not alert) ──────
-  showDeleteCodeOverlay(teamName, deleteCode, phone);
+  showDeleteCodeOverlay(teamName, deleteCode, phone, isReturning);
 }
 
-function showDeleteCodeOverlay(teamName, deleteCode, phone) {
+function showDeleteCodeOverlay(teamName, deleteCode, phone, isReturning=false) {
   // Build overlay
   const ov = document.createElement("div");
   ov.id = "codeOverlay";
@@ -678,16 +686,18 @@ function showDeleteCodeOverlay(teamName, deleteCode, phone) {
                   border-bottom:3px solid #FFD700;">
         <div style="font-size:2rem;margin-bottom:4px;">🙏</div>
         <div style="font-family:'Cinzel Decorative',serif;color:#FFD700;font-size:1rem;
-                    letter-spacing:.06em;">Registration Successful!</div>
+                    letter-spacing:.06em;">${isReturning?"Additional Slot Registered!":"Registration Successful!"}</div>
         <div style="color:rgba(255,215,0,.8);font-size:.85rem;margin-top:4px;">
           ${teamName}
         </div>
       </div>
       <div style="padding:24px 24px 8px;">
         <div style="font-size:.82rem;color:#6B3000;margin-bottom:14px;line-height:1.6;">
-          🔑 <strong>Save your delete code.</strong><br>
-          This is the <em>only</em> way to remove your registration.<br>
-          It will <strong>not</strong> be shown again.
+          🔑 <strong>${isReturning ? "This is your existing delete code." : "Save your delete code."}</strong><br>
+          ${isReturning
+            ? "Since you have registered before, we are reusing the same code for all your entries."
+            : "This is the <em>only</em> way to remove your registration."}<br>
+          ${isReturning ? "" : "It will <strong>not</strong> be shown again."}
         </div>
         <div id="codeBox" style="background:#3E1F00;border-radius:12px;padding:18px;margin-bottom:18px;
                   border:2px solid #FFD700;cursor:pointer;" onclick="copyCode('${deleteCode}',this)"
