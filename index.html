@@ -962,14 +962,19 @@ function dismissCodeOverlay() {
 
 // ── Delete modal ─────────────────────────────────────────────
 const ADMIN_PASSWORD = "Jai108Hanuman"; // ← change this to your own password
-let pendingDeleteId = null;
-let activeModalTab  = "mycode";
+let pendingDeleteId   = null;
+let pendingDeleteSlot = null;   // null = delete whole record; number = remove just that slot
+let activeModalTab    = "mycode";
 
-function deleteReg(id) {
-  pendingDeleteId = id;
+function deleteReg(id, slotNum=null) {
+  pendingDeleteId   = id;
+  pendingDeleteSlot = slotNum;
   const reg = registrations.find(r=>r.id===id);
   if (!reg) return;
-  document.getElementById("modalTeamName").textContent = reg.teamName;
+  const slotLabel = slotNum
+    ? ` — Slot ${slotNum} only${reg.slots.length > 1 ? " (other slots kept)" : ""}`
+    : "";
+  document.getElementById("modalTeamName").textContent = reg.teamName + slotLabel;
   document.getElementById("inputMyCode").value = "";
   document.getElementById("inputAdminPw").value = "";
   switchModalTab("mycode");
@@ -1008,10 +1013,20 @@ async function confirmDelete() {
     if (pw !== ADMIN_PASSWORD) { shakeInput("inputAdminPw"); showToast("Incorrect admin password","error"); return; }
   }
 
-  await deleteRegistration(pendingDeleteId);  // Firebase delete
-  // Live listener will update registrations[] automatically
-  closeModal();
-  showToast(`✅ Registration for "${reg.teamName}" removed`,"success");
+  if (pendingDeleteSlot !== null && reg.slots.length > 1) {
+    // Remove just this one slot — keep the rest of the registration
+    const updatedSlots = reg.slots.filter(s => s !== pendingDeleteSlot);
+    reg.slots = updatedSlots;
+    await saveRegistration(reg);   // overwrite in Firebase with updated slots
+    closeModal();
+    showToast(`✅ Slot ${pendingDeleteSlot} removed for "${reg.teamName}"`, "success");
+  } else {
+    // Delete the whole registration
+    await deleteRegistration(pendingDeleteId);
+    closeModal();
+    showToast(`✅ Registration for "${reg.teamName}" removed`, "success");
+  }
+  pendingDeleteSlot = null;
 }
 
 function shakeInput(id) {
@@ -1054,7 +1069,7 @@ function renderBySlot() {
     const summary = teams.map(t=>`${t.teamName}${t.leaderName?` (${t.leaderName})`:"" }`).join(", ");
     html+=`<div style="font-size:.78rem;color:var(--text-mid);margin-bottom:8px;padding:0 4px;">${summary}</div>`;
     teams.forEach(t=>{
-      html+=teamRow(t);
+      html+=teamRow(t, false, sl.num);
     });
     html+="</div>";
   });
@@ -1067,9 +1082,17 @@ function renderByTeam() {
   el.innerHTML = registrations.map(t=>teamRow(t,true)).join("");
 }
 
-function teamRow(t, showSlots=false) {
+function teamRow(t, showSlots=false, contextSlot=null) {
   const initials = t.teamName.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
   const slotTags = t.slots.map(n=>`<span class="reg-slot-tag">Slot ${n}</span>`).join("");
+  // When called from "By Slot" view, delete only removes that slot
+  // When called from "All Participants" view (contextSlot=null), delete removes whole record
+  const deleteCall = contextSlot !== null
+    ? `deleteReg('${t.id}', ${contextSlot})`
+    : `deleteReg('${t.id}')`;
+  const deleteLabel = contextSlot !== null && t.slots.length > 1
+    ? `🗑️ Remove Slot ${contextSlot}`
+    : `🗑️ Remove`;
   return `<div class="reg-team-row">
     <div class="reg-avatar">${initials}</div>
     <div class="reg-info">
@@ -1079,7 +1102,7 @@ function teamRow(t, showSlots=false) {
       ${t.notes?`<div style="font-size:.72rem;color:#888;margin-top:2px;font-style:italic;">💬 ${t.notes}</div>`:""}
       <div style="font-size:.68rem;color:#bbb;margin-top:3px;">Registered: ${t.registeredAt}</div>
     </div>
-    <button class="delete-btn" onclick="deleteReg('${t.id}')" title="Remove this registration">🗑️ Remove</button>
+    <button class="delete-btn" onclick="${deleteCall}" title="Remove">${deleteLabel}</button>
   </div>`;
 }
 
@@ -1110,10 +1133,11 @@ function renderCoverage() {
 }
 
 function updateStats() {
-  const uniqueTeams = registrations.length;
+  // Sum leaderName (which holds participant count) across all registrations
+  const totalParticipants = registrations.reduce((sum,r) => sum + (parseInt(r.leaderName)||0), 0);
   const coveredSlots = SLOTS.filter(sl=>registrations.some(r=>r.slots.includes(sl.num))).length;
   const estChalisa = registrations.reduce((sum,r)=>sum+r.slots.length*8,0);
-  document.getElementById("statTeams").textContent  = uniqueTeams;
+  document.getElementById("statTeams").textContent  = totalParticipants;
   document.getElementById("statSlots").textContent  = `${coveredSlots}/12`;
   document.getElementById("statChalisa").textContent= `~${estChalisa}`;
 }
