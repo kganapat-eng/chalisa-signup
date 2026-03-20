@@ -751,8 +751,6 @@ async function submitRegistration() {
     showToast("Please enter a valid email address","error"); return;
   }
 
-  const mahaAdults = document.getElementById("mahaAdults").value.trim();
-  const mahaKids   = document.getElementById("mahaKids").value.trim();
   if (!mahaAdults && mahaAdults !== "0") { showToast("Please enter number of adults for Mahaprasadam (enter 0 if none)","error"); return; }
   if (!mahaKids   && mahaKids   !== "0") { showToast("Please enter number of kids for Mahaprasadam (enter 0 if none)","error"); return; }
 
