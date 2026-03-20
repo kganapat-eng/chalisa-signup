@@ -136,6 +136,9 @@ header .subtitle {
 .slot-period {
   font-size:.72rem;color:var(--text-mid);
 }
+.slot-dur {
+  font-size:.68rem;color:#27AE60;font-weight:700;margin-top:3px;
+}
 .slot-teams-badge {
   margin-top:6px;font-size:.68rem;padding:2px 7px;border-radius:10px;
   background:rgba(0,0,0,0.06);color:var(--text-mid);display:inline-block;
@@ -276,6 +279,20 @@ header .subtitle {
 .tab-pane { display:none; }
 .tab-pane.active { display:block; }
 
+/* ── Export buttons ── */
+.btn-export {
+  padding:11px 20px;border:none;border-radius:9px;cursor:pointer;
+  font-family:'Cinzel',serif;font-size:.82rem;font-weight:600;letter-spacing:.05em;
+  background:linear-gradient(135deg,#27AE60,#1E8449);color:#fff;
+  box-shadow:0 4px 16px rgba(39,174,96,0.35);transition:all .18s;
+}
+.btn-export:hover { transform:translateY(-2px);box-shadow:0 6px 22px rgba(39,174,96,0.45); }
+.btn-export-secondary {
+  background:linear-gradient(135deg,#2980B9,#1A5276);
+  box-shadow:0 4px 16px rgba(41,128,185,0.35);
+}
+.btn-export-secondary:hover { box-shadow:0 6px 22px rgba(41,128,185,0.45); }
+
 /* ── Responsive ── */
 @media(max-width:480px){
   .slots-grid{grid-template-columns:1fr 1fr;}
@@ -291,7 +308,7 @@ header .subtitle {
   <header>
     <div class="om">🙏</div>
     <h1>Akhanda Hanuman<br>Chalisa Parayanam</h1>
-    <div class="subtitle">Team Sign-Up Portal</div>
+    <div class="subtitle">Team Sign-Up Portal · 15-Min Overlap Between Slots</div>
     <div class="date-badge">
       ⏰ 6:00 AM, 18 April 2025 &nbsp;→&nbsp; 6:00 AM, 19 April 2025
     </div>
@@ -379,6 +396,24 @@ header .subtitle {
     </div>
   </div>
 
+  <!-- Export card -->
+  <div class="card">
+    <div class="card-header">
+      <span>📥</span>
+      <h2>Export Registrations</h2>
+    </div>
+    <div class="card-body">
+      <p style="font-size:.88rem;color:var(--text-mid);margin-bottom:14px;">
+        Download all current registrations as a CSV file. Open it in Excel or Google Sheets — each row is one team, with their slot selections, contact details, and sign-up time.
+      </p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn-export" onclick="exportCSV()">⬇️ &nbsp;Download as CSV (Excel)</button>
+        <button class="btn-export btn-export-secondary" onclick="copyCSV()">📋 &nbsp;Copy to Clipboard</button>
+      </div>
+      <div id="exportMsg" style="margin-top:10px;font-size:.8rem;color:#27AE60;display:none;"></div>
+    </div>
+  </div>
+
   <!-- Registered Teams -->
   <div class="card">
     <div class="card-header">
@@ -410,19 +445,21 @@ header .subtitle {
 
 <script>
 // ── Slot definitions ──────────────────────────────────────────
+// Each slot starts 2h after previous start; runs 2h15m (15-min overlap with next team).
+// Slot 12 is 2h only — ends exactly at 6:00 AM.
 const SLOTS = [
-  {num:1, start:"06:00 AM", end:"08:00 AM", period:"Early Morning",  type:"day"},
-  {num:2, start:"08:00 AM", end:"10:00 AM", period:"Morning",         type:"day"},
-  {num:3, start:"10:00 AM", end:"12:00 PM", period:"Mid-Morning",     type:"day"},
-  {num:4, start:"12:00 PM", end:"02:00 PM", period:"Afternoon",       type:"day"},
-  {num:5, start:"02:00 PM", end:"04:00 PM", period:"Mid-Afternoon",   type:"eve"},
-  {num:6, start:"04:00 PM", end:"06:00 PM", period:"Evening",         type:"eve"},
-  {num:7, start:"06:00 PM", end:"08:00 PM", period:"Late Evening",    type:"eve"},
-  {num:8, start:"08:00 PM", end:"10:00 PM", period:"Night",           type:"night"},
-  {num:9, start:"10:00 PM", end:"12:00 AM", period:"Late Night",      type:"night"},
-  {num:10,start:"12:00 AM", end:"02:00 AM", period:"Midnight",        type:"night"},
-  {num:11,start:"02:00 AM", end:"04:00 AM", period:"Deep Night",      type:"night"},
-  {num:12,start:"04:00 AM", end:"06:00 AM", period:"Brahma Muhurta ✨",type:"brahma"},
+  {num:1,  start:"06:00 AM", end:"08:15 AM", period:"Early Morning",   type:"day",    dur:"2h 15m"},
+  {num:2,  start:"08:00 AM", end:"10:15 AM", period:"Morning",          type:"day",    dur:"2h 15m"},
+  {num:3,  start:"10:00 AM", end:"12:15 PM", period:"Mid-Morning",      type:"day",    dur:"2h 15m"},
+  {num:4,  start:"12:00 PM", end:"02:15 PM", period:"Afternoon",        type:"day",    dur:"2h 15m"},
+  {num:5,  start:"02:00 PM", end:"04:15 PM", period:"Mid-Afternoon",    type:"eve",    dur:"2h 15m"},
+  {num:6,  start:"04:00 PM", end:"06:15 PM", period:"Evening",          type:"eve",    dur:"2h 15m"},
+  {num:7,  start:"06:00 PM", end:"08:15 PM", period:"Late Evening",     type:"eve",    dur:"2h 15m"},
+  {num:8,  start:"08:00 PM", end:"10:15 PM", period:"Night",            type:"night",  dur:"2h 15m"},
+  {num:9,  start:"10:00 PM", end:"12:15 AM", period:"Late Night",       type:"night",  dur:"2h 15m"},
+  {num:10, start:"12:00 AM", end:"02:15 AM", period:"Midnight",         type:"night",  dur:"2h 15m"},
+  {num:11, start:"02:00 AM", end:"04:15 AM", period:"Deep Night",       type:"night",  dur:"2h 15m"},
+  {num:12, start:"04:00 AM", end:"06:00 AM", period:"Brahma Muhurta ✨", type:"brahma", dur:"2h"},
 ];
 
 const STORAGE_KEY = "chalisa_registrations_v1";
@@ -458,6 +495,7 @@ function renderSlotGrid() {
       <div class="slot-num">SLOT ${sl.num} — APR ${sl.num<=7?18:19}</div>
       <div class="slot-time">${sl.start} – ${sl.end}</div>
       <div class="slot-period">${sl.period}</div>
+      <div class="slot-dur">${sl.dur}${sl.num<12?' · 15 min overlap':' · No overlap'}</div>
       <div class="slot-teams-badge">${count} team${count!==1?"s":""} signed up</div>`;
     grid.appendChild(d);
   });
@@ -625,6 +663,51 @@ function showToast(msg, type="success") {
   const t=document.getElementById("toast");
   t.textContent=msg; t.className=`show ${type}`;
   setTimeout(()=>t.className="",3000);
+}
+
+// ── CSV Export ────────────────────────────────────────────────
+function buildCSV() {
+  const headers = [
+    "Team Name","Team Leader","Phone","Email",
+    "Members","City","Slots Selected","Slot Times",
+    "Consecutive?","Total Hours","Notes","Registered At"
+  ];
+  const rows = registrations.map(r => {
+    const slotTimes = r.slots.map(n => {
+      const s = SLOTS[n-1];
+      return `Slot ${n}: ${s.start}-${s.end}`;
+    }).join(" | ");
+    const sorted = [...r.slots].sort((a,b)=>a-b);
+    const isConsec = sorted.length > 1 && sorted.every((v,i)=>i===0||v===sorted[i-1]+1);
+    return [
+      r.teamName, r.leaderName, r.phone, r.email||"",
+      r.memberCount||"", r.city||"",
+      r.slots.join(", "), slotTimes,
+      r.slots.length===1 ? "N/A" : isConsec ? "Yes" : "No",
+      (r.slots.length * 2) + " hrs",
+      r.notes||"", r.registeredAt
+    ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(",");
+  });
+  return [headers.map(h=>`"${h}"`).join(","), ...rows].join("\r\n");
+}
+
+function exportCSV() {
+  if (!registrations.length) { showToast("No registrations to export yet!","error"); return; }
+  const csv  = buildCSV();
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href = url; a.download = "Hanuman_Chalisa_Registrations.csv";
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  showToast("✅ CSV downloaded! Open in Excel or Google Sheets.","success");
+}
+
+function copyCSV() {
+  if (!registrations.length) { showToast("No registrations to copy yet!","error"); return; }
+  navigator.clipboard.writeText(buildCSV()).then(() => {
+    showToast("📋 Copied! Paste into Excel or Google Sheets.","success");
+  }).catch(() => showToast("Copy failed — try the Download button instead.","error"));
 }
 
 // ── Init ──────────────────────────────────────────────────────
