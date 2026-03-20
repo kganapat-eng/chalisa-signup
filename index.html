@@ -768,7 +768,34 @@ async function submitRegistration() {
     return;
   }
 
-  // ── Reuse existing delete code if same team+phone already registered ──
+  // ── Find existing entry for same name+phone ─────────────────
+  const newSlots = [...selectedSlots].sort((a,b)=>a-b);
+
+  // Check if same person already has an entry covering ALL the same slots
+  const exactMatch = registrations.find(r =>
+    r.teamName.toLowerCase() === nameLower &&
+    r.phone.replace(/\s+/g,"") === phoneClean &&
+    r.slots.length === newSlots.length &&
+    r.slots.every((s,i) => s === newSlots[i])
+  );
+
+  if (exactMatch) {
+    // Same person, same slot(s) — UPDATE the existing entry in place
+    exactMatch.leaderName  = leaderName;
+    exactMatch.email       = email;
+    exactMatch.mahaAdults  = mahaAdults;
+    exactMatch.mahaKids    = mahaKids;
+    exactMatch.notes       = notes;
+    exactMatch.registeredAt= new Date().toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"});
+    await saveRegistration(exactMatch);   // overwrite in Firebase (same id)
+    selectedSlots.clear();
+    ["teamName","leaderName","phone","email","mahaAdults","mahaKids","notes"].forEach(id=>document.getElementById(id).value="");
+    renderAll();
+    showDeleteCodeOverlay(exactMatch.teamName, exactMatch.deleteCode, phone, true);
+    return;
+  }
+
+  // New entry — reuse delete code if same name+phone exists for different slots
   const existingEntry = registrations.find(r =>
     r.teamName.toLowerCase() === nameLower &&
     r.phone.replace(/\s+/g,"") === phoneClean
@@ -781,7 +808,7 @@ async function submitRegistration() {
   const reg = {
     id: Date.now().toString(),
     teamName, leaderName, phone, email, mahaAdults, mahaKids, notes,
-    slots: [...selectedSlots].sort((a,b)=>a-b),
+    slots: newSlots,
     registeredAt: new Date().toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"}),
     deleteCode,
   };
@@ -793,6 +820,7 @@ async function submitRegistration() {
   selectedSlots.clear();
   ["teamName","leaderName","phone","email","mahaAdults","mahaKids","notes"].forEach(id=>document.getElementById(id).value="");
   renderAll();
+  // (exactMatch path returns early above, so we only reach here for new entries)
 
   // ── Show delete code in full-screen overlay (not alert) ──────
   showDeleteCodeOverlay(teamName, deleteCode, phone, isReturning);
@@ -1014,7 +1042,7 @@ function renderBySlot() {
     html+=`<div class="reg-slot-group">
       <div class="reg-slot-header">
         <span>Slot ${sl.num} &nbsp;·&nbsp; ${sl.start} – ${sl.end} &nbsp;(${sl.period})</span>
-        <span>${teams.length} participant${teams.length!==1?"s":""}</span>
+        <span>${teams.length} registration${teams.length!==1?"s":""}</span>
       </div>`;
     // compact name(count) summary line
     const summary = teams.map(t=>`${t.teamName}${t.leaderName?` (${t.leaderName})`:"" }`).join(", ");
