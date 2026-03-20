@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Akhanda Hanuman Chalisa Parayanam – Participant Sign-Up</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
+<!-- Firebase v9 compat (CDN) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <style>
 :root {
   --saffron: #FF6B00;
@@ -375,6 +378,14 @@ header .subtitle {
 </style>
 </head>
 <body>
+<!-- Firebase config warning — hidden once configured -->
+<div id="firebaseWarning" style="display:none;background:#C0392B;color:#fff;text-align:center;
+  padding:12px 16px;font-family:Lato,sans-serif;font-size:.88rem;font-weight:700;position:sticky;
+  top:0;z-index:9997;">
+  ⚠️ Firebase is not configured yet. Registrations will NOT be saved.
+  Open this file and fill in your <code>firebaseConfig</code> values.
+</div>
+
 <div class="page-wrap">
 
   <!-- Header -->
@@ -583,22 +594,98 @@ const SLOTS = [
   {num:12, start:"04:00 AM", end:"06:00 AM", period:"Brahma Muhurta ✨", type:"brahma", dur:"2h"},
 ];
 
-const STORAGE_KEY = "chalisa_registrations_v1";
 let selectedSlots = new Set();
-let registrations = [];
+let registrations  = [];
+let db             = null;   // Firebase DB reference
+const FB_PATH      = "chalisa_registrations"; // path in your Realtime DB
 
-// ── Persistent storage ────────────────────────────────────────
-async function loadRegistrations() {
+// ── Firebase config — REPLACE with your own project values ──
+// Steps:
+//  1. Go to console.firebase.google.com
+//  2. Create a project (or open existing one)
+//  3. Click "Add app" → Web → register app
+//  4. Copy the firebaseConfig object shown and paste it here
+//  5. In Firebase console → Realtime Database → Create database
+//     Choose "Start in TEST mode" (allows read/write for 30 days)
+//     Then update the rules to:
+//       { "rules": { ".read": true, ".write": true } }
+  const firebaseConfig = {
+    apiKey: "AIzaSyB1Y0MGH9eByyQncm4Ffnd2r1p6cOEkf5g",
+    authDomain: "chalisa-signup.firebaseapp.com",
+    databaseURL: "https://chalisa-signup-default-rtdb.firebaseio.com",
+    projectId: "chalisa-signup",
+    storageBucket: "chalisa-signup.firebasestorage.app",
+    messagingSenderId: "320490076399",
+    appId: "1:320490076399:web:827ae694ebe9b452be031a"
+  };
+
+// ── Initialise Firebase ───────────────────────────────────────
+function initFirebase() {
   try {
-    const r = await window.storage.get(STORAGE_KEY, true);
-    if (r && r.value) registrations = JSON.parse(r.value);
-  } catch(e) { registrations = []; }
-  renderAll();
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    console.log("✅ Firebase connected");
+    return true;
+  } catch(e) {
+    console.error("Firebase init failed:", e);
+    return false;
+  }
 }
-async function saveRegistrations() {
+
+// ── Load & subscribe to live updates ────────────────────────
+function loadRegistrations() {
+  if (!initFirebase()) { renderAll(); return; }
+  showLoadingBanner(true);
+  db.ref(FB_PATH).on("value", snapshot => {
+    const data = snapshot.val();
+    registrations = data ? Object.values(data) : [];
+    // Sort by registration time
+    registrations.sort((a,b) => (a.registeredAt||"").localeCompare(b.registeredAt||""));
+    showLoadingBanner(false);
+    renderAll();
+  }, err => {
+    console.error("DB read error:", err);
+    showLoadingBanner(false);
+    showToast("Could not load registrations. Check Firebase config.", "error", 6000);
+    renderAll();
+  });
+}
+
+// ── Save one registration ────────────────────────────────────
+async function saveRegistration(reg) {
+  if (!db) { console.error("DB not ready"); return; }
   try {
-    await window.storage.set(STORAGE_KEY, JSON.stringify(registrations), true);
-  } catch(e) { console.error("Save failed",e); }
+    await db.ref(FB_PATH + "/" + reg.id).set(reg);
+  } catch(e) {
+    console.error("Save failed:", e);
+    showToast("Save failed — please try again.", "error");
+  }
+}
+
+// ── Delete one registration ───────────────────────────────────
+async function deleteRegistration(id) {
+  if (!db) return;
+  try {
+    await db.ref(FB_PATH + "/" + id).remove();
+  } catch(e) {
+    console.error("Delete failed:", e);
+    showToast("Delete failed — please try again.", "error");
+  }
+}
+
+function showLoadingBanner(show) {
+  let el = document.getElementById("loadingBanner");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "loadingBanner";
+    el.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:9998;background:#FF6B00;" +
+      "color:#fff;text-align:center;padding:8px;font-family:Cinzel,serif;font-size:.82rem;" +
+      "letter-spacing:.06em;font-weight:700;transition:opacity .3s;";
+    el.textContent = "🔄 Connecting to database…";
+    document.body.prepend(el);
+  }
+  el.style.opacity = show ? "1" : "0";
+  if (!show) setTimeout(()=>{ if(el) el.remove(); }, 400);
 }
 
 // ── Slot grid render ──────────────────────────────────────────
@@ -643,7 +730,7 @@ function renderSelectedDisplay() {
 }
 
 // ── Submit ────────────────────────────────────────────────────
-function submitRegistration() {
+async function submitRegistration() {
   const teamName    = document.getElementById("teamName").value.trim();
   const leaderName  = document.getElementById("leaderName").value.trim();
   const phone       = document.getElementById("phone").value.trim();
@@ -702,7 +789,7 @@ function submitRegistration() {
   };
 
   registrations.push(reg);
-  saveRegistrations();
+  await saveRegistration(reg);   // Firebase save
 
   // ── Reset form ───────────────────────────────────────────────
   selectedSlots.clear();
@@ -875,7 +962,7 @@ function switchModalTab(tab) {
   }, 50);
 }
 
-function confirmDelete() {
+async function confirmDelete() {
   const reg = registrations.find(r=>r.id===pendingDeleteId);
   if (!reg) { closeModal(); return; }
 
@@ -889,9 +976,8 @@ function confirmDelete() {
     if (pw !== ADMIN_PASSWORD) { shakeInput("inputAdminPw"); showToast("Incorrect admin password","error"); return; }
   }
 
-  registrations = registrations.filter(r=>r.id!==pendingDeleteId);
-  saveRegistrations();
-  renderAll();
+  await deleteRegistration(pendingDeleteId);  // Firebase delete
+  // Live listener will update registrations[] automatically
   closeModal();
   showToast(`✅ Registration for "${reg.teamName}" removed`,"success");
 }
@@ -1068,7 +1154,13 @@ function copyCSV() {
 }
 
 // ── Init ──────────────────────────────────────────────────────
-loadRegistrations();
+if (firebaseConfig.apiKey.startsWith("REPLACE")) {
+  document.getElementById("firebaseWarning").style.display = "block";
+  registrations = [];
+  renderAll();
+} else {
+  loadRegistrations();
+}
 </script>
 </body>
 </html>
