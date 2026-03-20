@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Akhanda Hanuman Chalisa Parayanam – Team Sign-Up</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --saffron: #FF6B00;
+  --deep-saffron: #E05A00;
+  --gold: #D4A017;
+  --bright-gold: #FFD700;
+  --crimson: #8B0000;
+  --deep-crimson: #5C0000;
+  --cream: #FFF8EE;
+  --warm-white: #FFFDF7;
+  --text-dark: #2A0A00;
+  --text-mid: #6B3000;
+  --night-blue: #0D1B3E;
+  --glow: rgba(255,215,0,0.18);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body {
+  font-family:'Lato',sans-serif;
+  background: var(--deep-crimson);
+  min-height:100vh;
+  color: var(--text-dark);
+  overflow-x:hidden;
+}
+
+/* ── Mandala background ── */
+body::before {
+  content:'';
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,107,0,0.18) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(212,160,23,0.12) 0%, transparent 60%),
+    repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,215,0,0.03) 0deg 30deg, transparent 30deg 60deg);
+  pointer-events:none;z-index:0;
+}
+
+.page-wrap {
+  position:relative;z-index:1;
+  max-width:960px;margin:0 auto;padding:0 16px 60px;
+}
+
+/* ── Header ── */
+header {
+  text-align:center;padding:40px 0 24px;
+  border-bottom: 1px solid rgba(255,215,0,0.2);
+  margin-bottom:32px;
+}
+.om {
+  font-size:3rem;line-height:1;
+  background: linear-gradient(135deg,#FFD700,#FF6B00,#FFD700);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter: drop-shadow(0 0 12px rgba(255,215,0,0.5));
+  margin-bottom:8px;
+}
+header h1 {
+  font-family:'Cinzel Decorative',serif;
+  font-size:clamp(1.1rem,4vw,1.9rem);
+  color:#FFD700;
+  text-shadow:0 0 30px rgba(255,215,0,0.4),0 2px 4px rgba(0,0,0,0.6);
+  letter-spacing:.06em;line-height:1.3;margin-bottom:10px;
+}
+header .subtitle {
+  font-family:'Cinzel',serif;font-size:.95rem;
+  color:rgba(255,215,0,0.75);letter-spacing:.08em;font-weight:400;
+}
+.date-badge {
+  display:inline-flex;align-items:center;gap:8px;
+  margin-top:14px;padding:7px 20px;
+  background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.3);
+  border-radius:30px;font-family:'Cinzel',serif;font-size:.82rem;
+  color:#FFD700;letter-spacing:.06em;
+}
+
+/* ── Section cards ── */
+.card {
+  background:var(--warm-white);border-radius:14px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.35),0 0 0 1px rgba(255,215,0,0.08);
+  margin-bottom:28px;overflow:hidden;
+}
+.card-header {
+  padding:14px 22px;display:flex;align-items:center;gap:10px;
+  background:linear-gradient(135deg,var(--crimson),var(--deep-crimson));
+  border-bottom:2px solid var(--gold);
+}
+.card-header h2 {
+  font-family:'Cinzel',serif;font-size:1rem;
+  color:#FFD700;letter-spacing:.06em;font-weight:600;
+}
+.card-body { padding:22px; }
+
+/* ── Slot grid ── */
+.slots-grid {
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;
+}
+.slot-card {
+  border:2px solid transparent;border-radius:10px;
+  padding:12px 14px;cursor:pointer;transition:all .18s;
+  position:relative;user-select:none;
+  background:var(--cream);
+}
+.slot-card:hover { transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,107,0,0.15); }
+.slot-card.day   { border-color:#FFB347; }
+.slot-card.eve   { border-color:#7B9DD6; }
+.slot-card.night { border-color:#4A6B9E;background:#EEF3FB; }
+.slot-card.brahma{ border-color:#9B59B6;background:#F5EEF8; }
+.slot-card.selected {
+  border-color:var(--saffron)!important;
+  background:linear-gradient(135deg,#FFF3E0,#FFE4B5)!important;
+  box-shadow:0 0 0 3px rgba(255,107,0,0.2),0 4px 12px rgba(255,107,0,0.2);
+}
+.slot-card.selected .slot-check { opacity:1;transform:scale(1); }
+
+.slot-check {
+  position:absolute;top:8px;right:8px;
+  width:22px;height:22px;border-radius:50%;
+  background:var(--saffron);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.8rem;font-weight:700;
+  opacity:0;transform:scale(.5);transition:all .18s;
+}
+.slot-num {
+  font-family:'Cinzel',serif;font-size:.7rem;
+  color:var(--saffron);font-weight:600;letter-spacing:.06em;margin-bottom:3px;
+}
+.slot-time {
+  font-size:.88rem;font-weight:700;color:var(--text-dark);margin-bottom:2px;
+}
+.slot-period {
+  font-size:.72rem;color:var(--text-mid);
+}
+.slot-teams-badge {
+  margin-top:6px;font-size:.68rem;padding:2px 7px;border-radius:10px;
+  background:rgba(0,0,0,0.06);color:var(--text-mid);display:inline-block;
+}
+
+/* ── Form ── */
+.form-row {display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.form-row.single {grid-template-columns:1fr;}
+@media(max-width:560px){.form-row{grid-template-columns:1fr;}}
+.form-group label {
+  display:block;font-size:.75rem;font-weight:700;
+  color:var(--text-mid);letter-spacing:.07em;text-transform:uppercase;margin-bottom:5px;
+}
+.form-group input, .form-group textarea, .form-group select {
+  width:100%;padding:10px 13px;border:2px solid #E8D5B0;
+  border-radius:8px;font-family:'Lato',sans-serif;font-size:.92rem;
+  color:var(--text-dark);background:#FFFAF3;transition:border-color .15s;outline:none;
+}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus {
+  border-color:var(--saffron);box-shadow:0 0 0 3px rgba(255,107,0,0.1);
+}
+.form-group textarea {resize:vertical;min-height:72px;}
+.selected-slots-display {
+  min-height:44px;padding:10px 13px;border:2px dashed #E8D5B0;
+  border-radius:8px;background:#FFFAF3;font-size:.88rem;color:var(--text-mid);
+}
+.slot-tag {
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--saffron);color:#fff;padding:3px 10px 3px 10px;
+  border-radius:20px;font-size:.76rem;font-weight:700;margin:2px;
+}
+
+/* ── Submit button ── */
+.btn-submit {
+  width:100%;padding:14px;border:none;border-radius:10px;cursor:pointer;
+  font-family:'Cinzel',serif;font-size:1rem;font-weight:700;letter-spacing:.08em;
+  background:linear-gradient(135deg,#FF6B00,#E05A00);color:#fff;
+  box-shadow:0 4px 20px rgba(255,107,0,0.4);transition:all .18s;
+  margin-top:6px;
+}
+.btn-submit:hover { transform:translateY(-2px);box-shadow:0 8px 30px rgba(255,107,0,0.5); }
+.btn-submit:active { transform:translateY(0); }
+.btn-submit:disabled { opacity:.6;cursor:not-allowed;transform:none; }
+
+/* ── Registrations list ── */
+.reg-slot-group { margin-bottom:18px; }
+.reg-slot-header {
+  font-family:'Cinzel',serif;font-size:.82rem;font-weight:700;
+  color:var(--crimson);letter-spacing:.06em;
+  padding:6px 12px;background:#FFF0DC;border-left:3px solid var(--saffron);
+  border-radius:0 6px 6px 0;margin-bottom:8px;display:flex;justify-content:space-between;
+}
+.reg-team-row {
+  display:flex;align-items:center;gap:10px;padding:9px 14px;
+  background:var(--cream);border-radius:8px;margin-bottom:6px;
+  border:1px solid #F0E0C0;transition:background .15s;
+}
+.reg-team-row:hover { background:#FFF3E0; }
+.reg-avatar {
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,var(--saffron),var(--gold));
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-family:'Cinzel',serif;font-weight:700;font-size:.9rem;flex-shrink:0;
+}
+.reg-info { flex:1;min-width:0; }
+.reg-name { font-weight:700;font-size:.9rem;color:var(--text-dark); }
+.reg-leader { font-size:.76rem;color:var(--text-mid); }
+.reg-slots-tags { display:flex;flex-wrap:wrap;gap:3px;margin-top:3px; }
+.reg-slot-tag {
+  font-size:.68rem;padding:1px 7px;border-radius:10px;font-weight:700;
+  background:rgba(255,107,0,0.12);color:var(--saffron);border:1px solid rgba(255,107,0,0.2);
+}
+.delete-btn {
+  background:none;border:none;cursor:pointer;color:#ccc;font-size:1rem;
+  padding:4px;border-radius:4px;transition:color .15s;
+}
+.delete-btn:hover { color:#C0392B; }
+.empty-state {
+  text-align:center;padding:32px;color:#B8916A;
+  font-size:.9rem;font-style:italic;
+}
+.empty-state .empty-icon { font-size:2rem;margin-bottom:8px; }
+
+/* ── Coverage bar ── */
+.coverage-row {
+  display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:.82rem;
+}
+.coverage-bar-wrap {
+  flex:1;height:10px;background:#F0E0C0;border-radius:10px;overflow:hidden;
+}
+.coverage-bar-fill {
+  height:100%;border-radius:10px;transition:width .4s;
+  background:linear-gradient(90deg,var(--saffron),var(--gold));
+}
+.coverage-bar-fill.multi { background:linear-gradient(90deg,#27AE60,#2ECC71); }
+.coverage-label { width:120px;font-family:'Cinzel',serif;font-size:.72rem;color:var(--text-mid); }
+.coverage-count { width:40px;text-align:right;font-weight:700;color:var(--saffron); }
+
+/* ── Toast ── */
+#toast {
+  position:fixed;bottom:24px;right:24px;z-index:9999;
+  padding:13px 22px;border-radius:10px;font-weight:700;font-size:.9rem;
+  transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none;
+  box-shadow:0 8px 24px rgba(0,0,0,0.3);
+}
+#toast.show { transform:translateY(0);opacity:1; }
+#toast.success { background:#27AE60;color:#fff; }
+#toast.error   { background:#C0392B;color:#fff; }
+
+/* ── Stats strip ── */
+.stats-strip {
+  display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;
+}
+.stat-pill {
+  flex:1;min-width:120px;padding:12px 16px;border-radius:10px;
+  background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.2);
+  text-align:center;
+}
+.stat-num {
+  font-family:'Cinzel Decorative',serif;font-size:1.6rem;
+  color:#FFD700;line-height:1;
+}
+.stat-lbl { font-size:.7rem;color:rgba(255,215,0,0.65);letter-spacing:.07em;margin-top:3px; }
+
+/* ── Legend ── */
+.legend { display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;font-size:.75rem; }
+.legend-item { display:flex;align-items:center;gap:5px;color:var(--text-mid); }
+.legend-dot { width:10px;height:10px;border-radius:50%; }
+
+/* ── Tabs ── */
+.tabs { display:flex;border-bottom:2px solid #E8D5B0;margin-bottom:20px; }
+.tab-btn {
+  padding:9px 18px;font-family:'Cinzel',serif;font-size:.8rem;font-weight:600;
+  letter-spacing:.05em;cursor:pointer;border:none;background:none;
+  color:var(--text-mid);border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s;
+}
+.tab-btn.active { color:var(--crimson);border-bottom-color:var(--saffron); }
+.tab-pane { display:none; }
+.tab-pane.active { display:block; }
+
+/* ── Responsive ── */
+@media(max-width:480px){
+  .slots-grid{grid-template-columns:1fr 1fr;}
+  header h1{font-size:1.1rem;}
+  .stats-strip .stat-pill{min-width:90px;}
+}
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- Header -->
+  <header>
+    <div class="om">🙏</div>
+    <h1>Akhanda Hanuman<br>Chalisa Parayanam</h1>
+    <div class="subtitle">Team Sign-Up Portal</div>
+    <div class="date-badge">
+      ⏰ 6:00 AM, 18 April 2025 &nbsp;→&nbsp; 6:00 AM, 19 April 2025
+    </div>
+  </header>
+
+  <!-- Stats strip (outside card, dark bg) -->
+  <div class="stats-strip" id="statsStrip">
+    <div class="stat-pill"><div class="stat-num" id="statTeams">0</div><div class="stat-lbl">TEAMS SIGNED UP</div></div>
+    <div class="stat-pill"><div class="stat-num" id="statSlots">0/12</div><div class="stat-lbl">SLOTS COVERED</div></div>
+    <div class="stat-pill"><div class="stat-num" id="statChalisa">~0</div><div class="stat-lbl">EST. RECITATIONS</div></div>
+  </div>
+
+  <!-- Sign-up card -->
+  <div class="card">
+    <div class="card-header">
+      <span>✍️</span>
+      <h2>Register Your Team</h2>
+    </div>
+    <div class="card-body">
+      <!-- Legend -->
+      <div class="legend">
+        <span class="legend-item"><span class="legend-dot" style="background:#FFB347"></span>Morning (6AM–2PM)</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#7B9DD6"></span>Evening (2PM–10PM)</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#4A6B9E"></span>Night (10PM–4AM)</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#9B59B6"></span>Brahma Muhurta (4AM–6AM)</span>
+      </div>
+
+      <!-- Slot picker -->
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-size:.75rem;font-weight:700;color:var(--text-mid);letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px;">
+          Select Slot(s) — tap to toggle, multiple allowed *
+        </label>
+        <div class="slots-grid" id="slotGrid"></div>
+      </div>
+
+      <!-- Selected display -->
+      <div class="form-group" style="margin-bottom:16px;">
+        <label>Selected Slots</label>
+        <div class="selected-slots-display" id="selectedDisplay">
+          <span style="color:#C8A878;font-style:italic;">No slots selected yet – tap slots above</span>
+        </div>
+      </div>
+
+      <!-- Team details -->
+      <div class="form-row">
+        <div class="form-group">
+          <label>Team Name *</label>
+          <input type="text" id="teamName" placeholder="e.g. Sri Rama Bhaktas"/>
+        </div>
+        <div class="form-group">
+          <label>Team Leader *</label>
+          <input type="text" id="leaderName" placeholder="Full name"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Phone Number *</label>
+          <input type="tel" id="phone" placeholder="+91 XXXXX XXXXX"/>
+        </div>
+        <div class="form-group">
+          <label>Email (optional)</label>
+          <input type="email" id="email" placeholder="email@example.com"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Number of Members</label>
+          <input type="number" id="memberCount" placeholder="e.g. 5" min="1" max="100"/>
+        </div>
+        <div class="form-group">
+          <label>City / Area</label>
+          <input type="text" id="city" placeholder="e.g. Chennai, T. Nagar"/>
+        </div>
+      </div>
+      <div class="form-row single">
+        <div class="form-group">
+          <label>Notes / Special Message</label>
+          <textarea id="notes" placeholder="e.g. We will bring prasad for Slot 1 and Slot 12…"></textarea>
+        </div>
+      </div>
+
+      <button class="btn-submit" id="submitBtn" onclick="submitRegistration()">
+        🙏 &nbsp; Register Team
+      </button>
+    </div>
+  </div>
+
+  <!-- Registered Teams -->
+  <div class="card">
+    <div class="card-header">
+      <span>📋</span>
+      <h2>Registered Teams & Slot Coverage</h2>
+    </div>
+    <div class="card-body">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('bySlot',this)">By Slot</button>
+        <button class="tab-btn" onclick="switchTab('byTeam',this)">All Teams</button>
+        <button class="tab-btn" onclick="switchTab('coverage',this)">Coverage</button>
+      </div>
+
+      <div class="tab-pane active" id="tab-bySlot">
+        <div id="bySlotList"></div>
+      </div>
+      <div class="tab-pane" id="tab-byTeam">
+        <div id="byTeamList"></div>
+      </div>
+      <div class="tab-pane" id="tab-coverage">
+        <div id="coverageView"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page-wrap -->
+
+<div id="toast"></div>
+
+<script>
+// ── Slot definitions ──────────────────────────────────────────
+const SLOTS = [
+  {num:1, start:"06:00 AM", end:"08:00 AM", period:"Early Morning",  type:"day"},
+  {num:2, start:"08:00 AM", end:"10:00 AM", period:"Morning",         type:"day"},
+  {num:3, start:"10:00 AM", end:"12:00 PM", period:"Mid-Morning",     type:"day"},
+  {num:4, start:"12:00 PM", end:"02:00 PM", period:"Afternoon",       type:"day"},
+  {num:5, start:"02:00 PM", end:"04:00 PM", period:"Mid-Afternoon",   type:"eve"},
+  {num:6, start:"04:00 PM", end:"06:00 PM", period:"Evening",         type:"eve"},
+  {num:7, start:"06:00 PM", end:"08:00 PM", period:"Late Evening",    type:"eve"},
+  {num:8, start:"08:00 PM", end:"10:00 PM", period:"Night",           type:"night"},
+  {num:9, start:"10:00 PM", end:"12:00 AM", period:"Late Night",      type:"night"},
+  {num:10,start:"12:00 AM", end:"02:00 AM", period:"Midnight",        type:"night"},
+  {num:11,start:"02:00 AM", end:"04:00 AM", period:"Deep Night",      type:"night"},
+  {num:12,start:"04:00 AM", end:"06:00 AM", period:"Brahma Muhurta ✨",type:"brahma"},
+];
+
+const STORAGE_KEY = "chalisa_registrations_v1";
+let selectedSlots = new Set();
+let registrations = [];
+
+// ── Persistent storage ────────────────────────────────────────
+async function loadRegistrations() {
+  try {
+    const r = await window.storage.get(STORAGE_KEY, true);
+    if (r && r.value) registrations = JSON.parse(r.value);
+  } catch(e) { registrations = []; }
+  renderAll();
+}
+async function saveRegistrations() {
+  try {
+    await window.storage.set(STORAGE_KEY, JSON.stringify(registrations), true);
+  } catch(e) { console.error("Save failed",e); }
+}
+
+// ── Slot grid render ──────────────────────────────────────────
+function renderSlotGrid() {
+  const grid = document.getElementById("slotGrid");
+  grid.innerHTML = "";
+  SLOTS.forEach(sl => {
+    const count = registrations.filter(r=>r.slots.includes(sl.num)).length;
+    const sel = selectedSlots.has(sl.num);
+    const d = document.createElement("div");
+    d.className = `slot-card ${sl.type}${sel?" selected":""}`;
+    d.onclick = () => toggleSlot(sl.num);
+    d.innerHTML = `
+      <div class="slot-check">✓</div>
+      <div class="slot-num">SLOT ${sl.num} — APR ${sl.num<=7?18:19}</div>
+      <div class="slot-time">${sl.start} – ${sl.end}</div>
+      <div class="slot-period">${sl.period}</div>
+      <div class="slot-teams-badge">${count} team${count!==1?"s":""} signed up</div>`;
+    grid.appendChild(d);
+  });
+}
+
+function toggleSlot(num) {
+  if (selectedSlots.has(num)) selectedSlots.delete(num);
+  else selectedSlots.add(num);
+  renderSlotGrid();
+  renderSelectedDisplay();
+}
+
+function renderSelectedDisplay() {
+  const d = document.getElementById("selectedDisplay");
+  if (!selectedSlots.size) {
+    d.innerHTML = `<span style="color:#C8A878;font-style:italic;">No slots selected yet – tap slots above</span>`;
+    return;
+  }
+  const sorted = [...selectedSlots].sort((a,b)=>a-b);
+  d.innerHTML = sorted.map(n => {
+    const s = SLOTS[n-1];
+    return `<span class="slot-tag">Slot ${n} · ${s.start}</span>`;
+  }).join(" ");
+}
+
+// ── Submit ────────────────────────────────────────────────────
+function submitRegistration() {
+  const teamName    = document.getElementById("teamName").value.trim();
+  const leaderName  = document.getElementById("leaderName").value.trim();
+  const phone       = document.getElementById("phone").value.trim();
+  const email       = document.getElementById("email").value.trim();
+  const memberCount = document.getElementById("memberCount").value.trim();
+  const city        = document.getElementById("city").value.trim();
+  const notes       = document.getElementById("notes").value.trim();
+
+  if (!selectedSlots.size) { showToast("Please select at least one slot!","error"); return; }
+  if (!teamName)  { showToast("Please enter your team name","error"); return; }
+  if (!leaderName){ showToast("Please enter the team leader's name","error"); return; }
+  if (!phone)     { showToast("Please enter a contact phone number","error"); return; }
+
+  const reg = {
+    id: Date.now().toString(),
+    teamName, leaderName, phone, email, memberCount, city, notes,
+    slots: [...selectedSlots].sort((a,b)=>a-b),
+    registeredAt: new Date().toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"}),
+  };
+
+  registrations.push(reg);
+  saveRegistrations();
+
+  // Reset
+  selectedSlots.clear();
+  ["teamName","leaderName","phone","email","memberCount","city","notes"].forEach(id=>document.getElementById(id).value="");
+
+  renderAll();
+  showToast(`🙏 ${teamName} registered successfully!`,"success");
+}
+
+// ── Delete ────────────────────────────────────────────────────
+function deleteReg(id) {
+  if (!confirm("Remove this registration?")) return;
+  registrations = registrations.filter(r=>r.id!==id);
+  saveRegistrations();
+  renderAll();
+  showToast("Registration removed","success");
+}
+
+// ── Render all views ──────────────────────────────────────────
+function renderAll() {
+  renderSlotGrid();
+  renderSelectedDisplay();
+  renderBySlot();
+  renderByTeam();
+  renderCoverage();
+  updateStats();
+}
+
+function renderBySlot() {
+  const el = document.getElementById("bySlotList");
+  if (!registrations.length) { el.innerHTML=`<div class="empty-state"><div class="empty-icon">🔔</div>No registrations yet. Be the first to sign up!</div>`; return; }
+  let html="";
+  SLOTS.forEach(sl=>{
+    const teams = registrations.filter(r=>r.slots.includes(sl.num));
+    if (!teams.length) return;
+    html+=`<div class="reg-slot-group">
+      <div class="reg-slot-header">
+        <span>Slot ${sl.num} &nbsp;·&nbsp; ${sl.start} – ${sl.end} &nbsp;(${sl.period})</span>
+        <span>${teams.length} team${teams.length!==1?"s":""}</span>
+      </div>`;
+    teams.forEach(t=>{
+      html+=teamRow(t);
+    });
+    html+="</div>";
+  });
+  el.innerHTML = html || `<div class="empty-state"><div class="empty-icon">🔔</div>No registrations yet.</div>`;
+}
+
+function renderByTeam() {
+  const el = document.getElementById("byTeamList");
+  if (!registrations.length) { el.innerHTML=`<div class="empty-state"><div class="empty-icon">🔔</div>No registrations yet.</div>`; return; }
+  el.innerHTML = registrations.map(t=>teamRow(t,true)).join("");
+}
+
+function teamRow(t, showSlots=false) {
+  const initials = t.teamName.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+  const slotTags = t.slots.map(n=>`<span class="reg-slot-tag">Slot ${n}</span>`).join("");
+  return `<div class="reg-team-row">
+    <div class="reg-avatar">${initials}</div>
+    <div class="reg-info">
+      <div class="reg-name">${t.teamName}</div>
+      <div class="reg-leader">👤 ${t.leaderName} &nbsp;·&nbsp; 📞 ${t.phone}${t.memberCount?` &nbsp;·&nbsp; 👥 ${t.memberCount} members`:""}${t.city?` &nbsp;·&nbsp; 📍 ${t.city}`:""}</div>
+      <div class="reg-slots-tags">${slotTags}</div>
+      ${t.notes?`<div style="font-size:.72rem;color:#888;margin-top:2px;font-style:italic;">💬 ${t.notes}</div>`:""}
+      <div style="font-size:.68rem;color:#bbb;margin-top:2px;">Registered: ${t.registeredAt}</div>
+    </div>
+    <button class="delete-btn" onclick="deleteReg('${t.id}')" title="Remove">✕</button>
+  </div>`;
+}
+
+function renderCoverage() {
+  const el = document.getElementById("coverageView");
+  let html = `<div style="margin-bottom:14px;font-size:.82rem;color:var(--text-mid);">Each bar shows how many teams are covering that slot. Green = multiple teams (great coverage!)</div>`;
+  SLOTS.forEach(sl=>{
+    const count = registrations.filter(r=>r.slots.includes(sl.num)).length;
+    const pct   = Math.min(100, count*33);
+    const multi = count>=2;
+    html+=`<div class="coverage-row">
+      <div class="coverage-label">Slot ${sl.num} · ${sl.start.replace(" AM","").replace(" PM","")}</div>
+      <div class="coverage-bar-wrap"><div class="coverage-bar-fill${multi?" multi":""}" style="width:${pct}%"></div></div>
+      <div class="coverage-count">${count}</div>
+    </div>`;
+  });
+  const uncovered = SLOTS.filter(sl=>registrations.filter(r=>r.slots.includes(sl.num)).length===0);
+  if (uncovered.length) {
+    html+=`<div style="margin-top:14px;padding:10px 14px;background:#FFF3E0;border-radius:8px;border-left:3px solid var(--saffron);font-size:.82rem;color:var(--text-mid);">
+      ⚠️ <strong>Uncovered slots:</strong> ${uncovered.map(s=>`Slot ${s.num} (${s.start})`).join(", ")}
+    </div>`;
+  } else {
+    html+=`<div style="margin-top:14px;padding:10px 14px;background:#D4EDDA;border-radius:8px;border-left:3px solid #27AE60;font-size:.82rem;color:#155724;">
+      ✅ All 12 slots are covered! Jai Hanuman! 🙏
+    </div>`;
+  }
+  el.innerHTML = html;
+}
+
+function updateStats() {
+  const uniqueTeams = registrations.length;
+  const coveredSlots = SLOTS.filter(sl=>registrations.some(r=>r.slots.includes(sl.num))).length;
+  const estChalisa = registrations.reduce((sum,r)=>sum+r.slots.length*8,0);
+  document.getElementById("statTeams").textContent  = uniqueTeams;
+  document.getElementById("statSlots").textContent  = `${coveredSlots}/12`;
+  document.getElementById("statChalisa").textContent= `~${estChalisa}`;
+}
+
+// ── Tab switch ────────────────────────────────────────────────
+function switchTab(tab, btn) {
+  document.querySelectorAll(".tab-pane").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+  document.getElementById("tab-"+tab).classList.add("active");
+  btn.classList.add("active");
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+function showToast(msg, type="success") {
+  const t=document.getElementById("toast");
+  t.textContent=msg; t.className=`show ${type}`;
+  setTimeout(()=>t.className="",3000);
+}
+
+// ── Init ──────────────────────────────────────────────────────
+loadRegistrations();
+</script>
+</body>
+</html>
