@@ -771,40 +771,50 @@ async function submitRegistration() {
   // ── Find existing entry for same name+phone ─────────────────
   const newSlots = [...selectedSlots].sort((a,b)=>a-b);
 
-  // Check if same person already has an entry covering ALL the same slots
-  const exactMatch = registrations.find(r =>
-    r.teamName.toLowerCase() === nameLower &&
-    r.phone.replace(/\s+/g,"") === phoneClean &&
-    r.slots.length === newSlots.length &&
-    r.slots.every((s,i) => s === newSlots[i])
-  );
-
-  if (exactMatch) {
-    // Same person, same slot(s) — UPDATE the existing entry in place
-    exactMatch.leaderName  = leaderName;
-    exactMatch.email       = email;
-    exactMatch.mahaAdults  = mahaAdults;
-    exactMatch.mahaKids    = mahaKids;
-    exactMatch.notes       = notes;
-    exactMatch.registeredAt= new Date().toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"});
-    await saveRegistration(exactMatch);   // overwrite in Firebase (same id)
-    selectedSlots.clear();
-    ["teamName","leaderName","phone","email","mahaAdults","mahaKids","notes"].forEach(id=>document.getElementById(id).value="");
-    renderAll();
-    showDeleteCodeOverlay(exactMatch.teamName, exactMatch.deleteCode, phone, true);
-    return;
-  }
-
-  // New entry — reuse delete code if same name+phone exists for different slots
-  const existingEntry = registrations.find(r =>
+  // Find ALL existing entries for this same name+phone
+  const myEntries = registrations.filter(r =>
     r.teamName.toLowerCase() === nameLower &&
     r.phone.replace(/\s+/g,"") === phoneClean
   );
-  const deleteCode = existingEntry
-    ? existingEntry.deleteCode
-    : String(Math.floor(100000 + Math.random() * 900000));
-  const isReturning = !!existingEntry;
 
+  // Reuse delete code if any prior entry exists
+  const deleteCode = myEntries.length > 0
+    ? myEntries[0].deleteCode
+    : String(Math.floor(100000 + Math.random() * 900000));
+
+  // Find which of my existing entries have slots that OVERLAP with newSlots
+  const overlappingEntries = myEntries.filter(r =>
+    r.slots.some(s => newSlots.includes(s))
+  );
+
+  if (overlappingEntries.length > 0) {
+    // Collect ALL slots already covered by overlapping entries
+    const existingSlots = overlappingEntries.flatMap(r => r.slots);
+    // Merge: union of existing slots + new slots, deduplicated and sorted
+    const mergedSlots = [...new Set([...existingSlots, ...newSlots])].sort((a,b)=>a-b);
+
+    // Delete all overlapping entries from Firebase (we'll replace with one merged entry)
+    for (const entry of overlappingEntries) {
+      await deleteRegistration(entry.id);
+    }
+
+    // Save one merged entry with the combined slots
+    const mergedReg = {
+      id: Date.now().toString(),
+      teamName, leaderName, phone, email, mahaAdults, mahaKids, notes,
+      slots: mergedSlots,
+      registeredAt: new Date().toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"}),
+      deleteCode,
+    };
+    await saveRegistration(mergedReg);
+    selectedSlots.clear();
+    ["teamName","leaderName","phone","email","mahaAdults","mahaKids","notes"].forEach(id=>document.getElementById(id).value="");
+    renderAll();
+    showDeleteCodeOverlay(teamName, deleteCode, phone, true);
+    return;
+  }
+
+  // No overlap — brand new entry for this person (different slots entirely)
   const reg = {
     id: Date.now().toString(),
     teamName, leaderName, phone, email, mahaAdults, mahaKids, notes,
@@ -813,17 +823,13 @@ async function submitRegistration() {
     deleteCode,
   };
 
-  registrations.push(reg);
-  await saveRegistration(reg);   // Firebase save
+  await saveRegistration(reg);
 
   // ── Reset form ───────────────────────────────────────────────
   selectedSlots.clear();
   ["teamName","leaderName","phone","email","mahaAdults","mahaKids","notes"].forEach(id=>document.getElementById(id).value="");
   renderAll();
-  // (exactMatch path returns early above, so we only reach here for new entries)
-
-  // ── Show delete code in full-screen overlay (not alert) ──────
-  showDeleteCodeOverlay(teamName, deleteCode, phone, isReturning);
+  showDeleteCodeOverlay(teamName, deleteCode, phone, myEntries.length > 0);
 }
 
 function showDeleteCodeOverlay(teamName, deleteCode, phone, isReturning=false) {
