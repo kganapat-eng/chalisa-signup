@@ -1154,12 +1154,16 @@ function copyCSV() {
 }
 
 // ── Init ──────────────────────────────────────────────────────
+// Always render slots immediately so the grid is never blank
+renderSlotGrid();
+renderSelectedDisplay();
+
 if (firebaseConfig.apiKey.startsWith("REPLACE")) {
   document.getElementById("firebaseWarning").style.display = "block";
   registrations = [];
   renderAll();
 } else {
-  loadRegistrations();
+  loadRegistrations();  // Firebase listener will call renderAll() when data arrives
 }
 </script>
 </body>
