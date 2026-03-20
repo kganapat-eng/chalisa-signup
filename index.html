@@ -217,14 +217,7 @@ header .subtitle {
   border:1px solid #eee;font-family:'Lato',sans-serif;white-space:nowrap;
 }
 .delete-btn:hover { color:#C0392B;border-color:#C0392B;background:#FFF0EE; }
-/* ── Delete code badge ── */
-.delete-code-badge {
-  display:inline-flex;align-items:center;gap:4px;margin-top:4px;
-  padding:2px 8px;border-radius:10px;font-size:.68rem;font-weight:700;
-  background:#FFF0E0;border:1px solid #FFB347;color:#CC5500;
-  font-family:'Courier New',monospace;letter-spacing:.06em;
-}
-.dclabel { font-family:'Lato',sans-serif;font-weight:400;color:#999;letter-spacing:0;margin-right:2px; }
+/* delete-code-badge removed — code shown only in post-registration dialog */
 /* ── Modal ── */
 .modal-overlay {
   position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:9000;
@@ -421,7 +414,7 @@ header .subtitle {
           <input type="tel" id="phone" placeholder="+91 XXXXX XXXXX"/>
         </div>
         <div class="form-group">
-          <label>Email (optional)</label>
+          <label>Email *</label>
           <input type="email" id="email" placeholder="email@example.com"/>
         </div>
       </div>
@@ -438,7 +431,7 @@ header .subtitle {
       <div class="form-row single">
         <div class="form-group">
           <label>Notes / Special Message</label>
-          <textarea id="notes" placeholder="e.g. We will bring flowers / fruits for Slot-1 …"></textarea>
+          <textarea id="notes" placeholder="e.g. We will bring flowers / fruits / lamps for Slot-1 …"></textarea>
         </div>
       </div>
 
@@ -614,11 +607,38 @@ function submitRegistration() {
   const city        = document.getElementById("city").value.trim();
   const notes       = document.getElementById("notes").value.trim();
 
+  // ── Validation ──────────────────────────────────────────────
   if (!selectedSlots.size) { showToast("Please select at least one slot!","error"); return; }
-  if (!teamName)  { showToast("Please enter your team name","error"); return; }
-  if (!leaderName){ showToast("Please enter the team leader's name","error"); return; }
-  if (!phone)     { showToast("Please enter a contact phone number","error"); return; }
+  if (!teamName)   { showToast("Please enter your team name","error"); return; }
+  if (!leaderName) { showToast("Please enter the team leader's name","error"); return; }
+  if (!phone)      { showToast("Please enter a contact phone number","error"); return; }
+  if (!email)      { showToast("Please enter an email address","error"); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showToast("Please enter a valid email address","error"); return;
+  }
 
+  // ── Team name uniqueness check (case-insensitive, per phone number) ──
+  const nameLower  = teamName.toLowerCase();
+  const phoneClean = phone.replace(/\s+/g,"");
+  const duplicate  = registrations.find(r =>
+    r.teamName.toLowerCase() === nameLower &&
+    r.phone.replace(/\s+/g,"") !== phoneClean
+  );
+  if (duplicate) {
+    showToast(`"${teamName}" is already registered by another team. Please use a different team name.`,"error",5000);
+    return;
+  }
+  // Same phone re-registering same team name = update, block silently
+  const samePhoneSameName = registrations.find(r =>
+    r.teamName.toLowerCase() === nameLower &&
+    r.phone.replace(/\s+/g,"") === phoneClean
+  );
+  if (samePhoneSameName) {
+    showToast(`"${teamName}" is already registered under this phone number. Please delete the existing entry first.`,"error",5000);
+    return;
+  }
+
+  // ── Generate delete code & save ─────────────────────────────
   const deleteCode = String(Math.floor(100000 + Math.random() * 900000));
   const reg = {
     id: Date.now().toString(),
@@ -631,22 +651,139 @@ function submitRegistration() {
   registrations.push(reg);
   saveRegistrations();
 
-  // Reset form
+  // ── Reset form ───────────────────────────────────────────────
   selectedSlots.clear();
   ["teamName","leaderName","phone","email","memberCount","city","notes"].forEach(id=>document.getElementById(id).value="");
-
   renderAll();
 
-  // Show delete code prominently
-  showToast(`🙏 Registered! Your delete code: ${deleteCode} — save it!`,"success",6000);
-  setTimeout(()=>{
-    if(confirm(
-      `✅ ${teamName} registered!\n\n` +
-      `🔑 YOUR DELETE CODE: ${deleteCode}\n\n` +
-      `Please save this code. You will need it to remove your registration.\n\n` +
-      `Click OK to acknowledge.`
-    )) {}
-  }, 400);
+  // ── Show delete code in full-screen overlay (not alert) ──────
+  showDeleteCodeOverlay(teamName, deleteCode, phone);
+}
+
+function showDeleteCodeOverlay(teamName, deleteCode, phone) {
+  // Build overlay
+  const ov = document.createElement("div");
+  ov.id = "codeOverlay";
+  ov.style.cssText = [
+    "position:fixed","inset:0","z-index:10000",
+    "background:rgba(92,0,0,0.96)",
+    "display:flex","align-items:center","justify-content:center",
+    "padding:20px","animation:fadeInOv .25s ease"
+  ].join(";");
+
+  const phoneDigits = phone.replace(/[^0-9]/g,"").slice(-10);
+
+  ov.innerHTML = `
+    <style>
+      @keyframes fadeInOv{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+      @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,.4)}50%{box-shadow:0 0 0 12px rgba(255,215,0,0)}}
+      #codeBox{animation:pulse 2s ease infinite}
+    </style>
+    <div style="background:#FFF8EE;border-radius:18px;max-width:420px;width:100%;
+                box-shadow:0 24px 80px rgba(0,0,0,.6);overflow:hidden;text-align:center;">
+      <div style="background:linear-gradient(135deg,#8B0000,#5C0000);padding:18px 20px;
+                  border-bottom:3px solid #FFD700;">
+        <div style="font-size:2rem;margin-bottom:4px;">🙏</div>
+        <div style="font-family:'Cinzel Decorative',serif;color:#FFD700;font-size:1rem;
+                    letter-spacing:.06em;">Registration Successful!</div>
+        <div style="color:rgba(255,215,0,.8);font-size:.85rem;margin-top:4px;">
+          ${teamName}
+        </div>
+      </div>
+      <div style="padding:24px 24px 8px;">
+        <div style="font-size:.82rem;color:#6B3000;margin-bottom:14px;line-height:1.6;">
+          🔑 <strong>Save your delete code.</strong><br>
+          This is the <em>only</em> way to remove your registration.<br>
+          It will <strong>not</strong> be shown again.
+        </div>
+        <div id="codeBox" style="background:#3E1F00;border-radius:12px;padding:18px;margin-bottom:18px;
+                  border:2px solid #FFD700;cursor:pointer;" onclick="copyCode('${deleteCode}',this)"
+             title="Tap to copy">
+          <div style="font-size:.7rem;color:#FFB347;letter-spacing:.1em;margin-bottom:6px;
+                      font-family:'Lato',sans-serif;">YOUR DELETE CODE</div>
+          <div style="font-family:'Courier New',monospace;font-size:2.2rem;font-weight:700;
+                      color:#FFD700;letter-spacing:.25em;">${deleteCode}</div>
+          <div style="font-size:.68rem;color:#CC8800;margin-top:6px;">Tap to copy</div>
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;justify-content:center;">
+          <button onclick="trySendWhatsApp('${deleteCode}','${teamName}','${phoneDigits}')"
+            style="flex:1;min-width:130px;padding:10px 14px;border:none;border-radius:8px;cursor:pointer;
+                   background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;
+                   font-family:'Cinzel',serif;font-size:.8rem;font-weight:600;letter-spacing:.04em;">
+            📲 Send to WhatsApp
+          </button>
+          <button onclick="trySendSMS('${deleteCode}','${teamName}','${phoneDigits}')"
+            style="flex:1;min-width:130px;padding:10px 14px;border:none;border-radius:8px;cursor:pointer;
+                   background:linear-gradient(135deg,#1A5276,#0D3349);color:#fff;
+                   font-family:'Cinzel',serif;font-size:.8rem;font-weight:600;letter-spacing:.04em;">
+            💬 Send via SMS
+          </button>
+        </div>
+        <div id="shareNote" style="font-size:.72rem;color:#888;margin-bottom:16px;font-style:italic;">
+          WhatsApp/SMS buttons open a pre-filled message on your device. If unavailable, just screenshot this screen.
+        </div>
+      </div>
+      <div style="padding:0 24px 20px;">
+        <button onclick="dismissCodeOverlay()"
+          style="width:100%;padding:12px;border:none;border-radius:10px;cursor:pointer;
+                 background:linear-gradient(135deg,#FF6B00,#CC5500);color:#fff;
+                 font-family:'Cinzel',serif;font-size:.9rem;font-weight:700;letter-spacing:.06em;
+                 box-shadow:0 4px 16px rgba(255,107,0,.35);">
+          ✅ &nbsp;I have saved my code — continue
+        </button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(ov);
+}
+
+function copyCode(code, el) {
+  navigator.clipboard.writeText(code).then(()=>{
+    el.querySelector("div:last-child").textContent = "✅ Copied!";
+    setTimeout(()=>{ if(el) el.querySelector("div:last-child").textContent = "Tap to copy"; }, 2000);
+  }).catch(()=>{ showToast("Could not copy — please note the code manually","error"); });
+}
+
+function trySendWhatsApp(code, teamName, phone) {
+  const msg = encodeURIComponent(
+    "🙏 Hanuman Chalisa Parayanam Registration\n" +
+    "Team: " + teamName + "\n" +
+    "🔑 Delete Code: " + code + "\n" +
+    "Keep this safe — you need it to remove your registration."
+  );
+  const url = phone
+    ? `https://wa.me/91${phone}?text=${msg}`
+    : `https://wa.me/?text=${msg}`;
+  const w = window.open(url, "_blank");
+  if (!w) {
+    document.getElementById("shareNote").innerHTML =
+      "⚠️ WhatsApp could not be opened. Please screenshot this screen to save your code.";
+  }
+}
+
+function trySendSMS(code, teamName, phone) {
+  const body = encodeURIComponent(
+    "Hanuman Chalisa Parayanam - Team: " + teamName +
+    " | Delete Code: " + code +
+    " | Keep this safe to remove your registration."
+  );
+  const url = phone ? `sms:+91${phone}?body=${body}` : `sms:?body=${body}`;
+  try {
+    window.location.href = url;
+  } catch(e) {
+    document.getElementById("shareNote").innerHTML =
+      "⚠️ SMS could not be opened. Please screenshot this screen to save your code.";
+  }
+}
+
+function dismissCodeOverlay() {
+  const ov = document.getElementById("codeOverlay");
+  if (ov) {
+    ov.style.opacity = "0";
+    ov.style.transition = "opacity .2s";
+    setTimeout(()=>ov.remove(), 200);
+  }
+  showToast("🙏 Registration complete! Jai Bajrangbali!","success",4000);
 }
 
 // ── Delete modal ─────────────────────────────────────────────
@@ -764,11 +901,6 @@ function teamRow(t, showSlots=false) {
       <div class="reg-leader">👤 ${t.leaderName} &nbsp;·&nbsp; 📞 ${t.phone}${t.memberCount?` &nbsp;·&nbsp; 👥 ${t.memberCount} members`:""}${t.city?` &nbsp;·&nbsp; 📍 ${t.city}`:""}</div>
       <div class="reg-slots-tags">${slotTags}</div>
       ${t.notes?`<div style="font-size:.72rem;color:#888;margin-top:2px;font-style:italic;">💬 ${t.notes}</div>`:""}
-      <div style="margin-top:4px;">
-        <span class="delete-code-badge" title="Your delete code — keep this safe!">
-          <span class="dclabel">Delete code:</span> ${t.deleteCode||"N/A"}
-        </span>
-      </div>
       <div style="font-size:.68rem;color:#bbb;margin-top:3px;">Registered: ${t.registeredAt}</div>
     </div>
     <button class="delete-btn" onclick="deleteReg('${t.id}')" title="Remove this registration">🗑️ Remove</button>
