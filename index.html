@@ -411,7 +411,7 @@ header .subtitle {
       <div class="form-row">
         <div class="form-group">
           <label>Phone Number *</label>
-          <input type="tel" id="phone" placeholder="+1 XXXXX XXXXX"/>
+          <input type="tel" id="phone" placeholder="+1 XXX XXX XXXX"/>
         </div>
         <div class="form-group">
           <label>Email *</label>
@@ -755,7 +755,7 @@ function trySendWhatsApp(code, teamName, phone) {
     "Keep this safe — you need it to remove your registration."
   );
   const url = phone
-    ? `https://wa.me/91${phone}?text=${msg}`
+    ? `https://wa.me/1${phone}?text=${msg}`
     : `https://wa.me/?text=${msg}`;
   const w = window.open(url, "_blank");
   if (!w) {
@@ -770,7 +770,7 @@ function trySendSMS(code, teamName, phone) {
     " | Delete Code: " + code +
     " | Keep this safe to remove your registration."
   );
-  const url = phone ? `sms:+91${phone}?body=${body}` : `sms:?body=${body}`;
+  const url = phone ? `sms:+1${phone}?body=${body}` : `sms:?body=${body}`;
   try {
     window.location.href = url;
   } catch(e) {
