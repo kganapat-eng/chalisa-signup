@@ -431,7 +431,7 @@ header .subtitle {
       <div class="form-row single">
         <div class="form-group">
           <label>Notes / Special Message</label>
-          <textarea id="notes" placeholder="e.g. We will bring flowers / fruits / lamps for Slot-1 …"></textarea>
+          <textarea id="notes" placeholder="e.g. We will bring flowers / fruits Slot-1 …"></textarea>
         </div>
       </div>
 
@@ -617,24 +617,17 @@ function submitRegistration() {
     showToast("Please enter a valid email address","error"); return;
   }
 
-  // ── Team name uniqueness check (case-insensitive, per phone number) ──
+  // ── Team name uniqueness check ──────────────────────────────
+  // Block only if same team name already exists with a DIFFERENT phone number.
+  // Same phone + same team name is allowed (team signing up for additional slots).
   const nameLower  = teamName.toLowerCase();
   const phoneClean = phone.replace(/\s+/g,"");
-  const duplicate  = registrations.find(r =>
+  const takenByOther = registrations.find(r =>
     r.teamName.toLowerCase() === nameLower &&
     r.phone.replace(/\s+/g,"") !== phoneClean
   );
-  if (duplicate) {
+  if (takenByOther) {
     showToast(`"${teamName}" is already registered by another team. Please use a different team name.`,"error",5000);
-    return;
-  }
-  // Same phone re-registering same team name = update, block silently
-  const samePhoneSameName = registrations.find(r =>
-    r.teamName.toLowerCase() === nameLower &&
-    r.phone.replace(/\s+/g,"") === phoneClean
-  );
-  if (samePhoneSameName) {
-    showToast(`"${teamName}" is already registered under this phone number. Please delete the existing entry first.`,"error",5000);
     return;
   }
 
