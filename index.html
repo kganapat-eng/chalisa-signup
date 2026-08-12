@@ -389,9 +389,101 @@ header .subtitle {
   font-family:'Lato',sans-serif;font-size:.82rem;
   color:rgba(255,255,255,0.75);line-height:1.6;
 }
+
+/* ── Admin mode ── */
+.admin-bar {
+  display:none;position:sticky;top:0;z-index:9990;
+  background:linear-gradient(135deg,#8B0000,#5C0000);
+  border-bottom:3px solid #FFD700;
+  padding:10px 20px;
+  align-items:center;justify-content:space-between;gap:12px;
+  flex-wrap:wrap;
+}
+.admin-bar.visible { display:flex; }
+.admin-bar-label {
+  font-family:'Cinzel',serif;font-size:.9rem;font-weight:700;
+  color:#FFD700;letter-spacing:.06em;
+}
+.admin-bar-pills {
+  display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+}
+.admin-stat-pill {
+  background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.3);
+  border-radius:20px;padding:4px 14px;
+  font-family:'Cinzel',serif;font-size:.78rem;color:#FFD700;
+  white-space:nowrap;
+}
+.btn-exit-admin {
+  padding:7px 16px;border:1px solid rgba(255,215,0,0.5);border-radius:8px;
+  background:rgba(255,255,255,0.08);color:#FFD700;cursor:pointer;
+  font-family:'Cinzel',serif;font-size:.78rem;letter-spacing:.04em;
+  transition:all .15s;white-space:nowrap;
+}
+.btn-exit-admin:hover { background:rgba(255,255,255,0.15); }
+
+/* admin login button — subtle, bottom of page */
+.admin-login-wrap {
+  text-align:center;padding:24px 0 8px;
+}
+.btn-admin-login {
+  background:none;border:1px solid rgba(255,215,0,0.2);
+  border-radius:20px;padding:6px 18px;cursor:pointer;
+  font-family:'Cinzel',serif;font-size:.72rem;
+  color:rgba(255,215,0,0.45);letter-spacing:.06em;
+  transition:all .2s;
+}
+.btn-admin-login:hover { color:rgba(255,215,0,0.8);border-color:rgba(255,215,0,0.5); }
+
+/* admin-mode visibility */
+.admin-only { display:none; }
+body.admin-mode .admin-only { display:block; }
+body.admin-mode .admin-only-flex { display:flex; }
+body.admin-mode .export-card { display:none; } /* hide old export card */
+
+/* admin summary card */
+.admin-summary-card {
+  background:linear-gradient(135deg,#3A0000,#5C0000);
+  border-radius:14px;padding:0;overflow:hidden;
+  box-shadow:0 8px 40px rgba(0,0,0,0.35);
+  margin-bottom:28px;display:none;
+}
+body.admin-mode .admin-summary-card { display:block; }
+.admin-summary-grid {
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1px;
+  background:rgba(255,215,0,0.15);
+}
+.admin-summary-cell {
+  background:#3A0000;padding:16px 12px;text-align:center;
+}
+.admin-summary-num {
+  font-family:'Cinzel Decorative',serif;font-size:1.6rem;
+  color:#FFD700;line-height:1;
+}
+.admin-summary-lbl {
+  font-size:.68rem;color:rgba(255,215,0,0.65);
+  letter-spacing:.07em;margin-top:4px;
+}
+
+/* hide phone/email from non-admins */
+.sensitive { display:none; }
+body.admin-mode .sensitive { display:inline; }
+.sensitive-placeholder { display:inline; }
+body.admin-mode .sensitive-placeholder { display:none; }
+
 </style>
 </head>
 <body>
+<!-- Admin bar — shown in admin mode -->
+<div class="admin-bar" id="adminBar">
+  <div class="admin-bar-label">🔐 &nbsp;Admin Mode — Sunita</div>
+  <div class="admin-bar-pills">
+    <span class="admin-stat-pill" id="adminMahaTotal">🍽️ Maha: —</span>
+    <span class="admin-stat-pill" id="adminMahaAdults">👨 Adults: —</span>
+    <span class="admin-stat-pill" id="adminMahaKids">👧 Kids: —</span>
+  </div>
+  <button class="btn-exit-admin" onclick="exitAdminMode()">✕ Exit Admin</button>
+</div>
+
 <!-- Firebase config warning — hidden once configured -->
 <div id="firebaseWarning" style="display:none;background:#C0392B;color:#fff;text-align:center;
   padding:12px 16px;font-family:Lato,sans-serif;font-size:.88rem;font-weight:700;position:sticky;
@@ -509,8 +601,8 @@ header .subtitle {
     </div>
   </div>
 
-  <!-- Export card -->
-  <div class="card">
+  <!-- Export card — password-gated for non-admins, hidden in admin mode -->
+  <div class="card export-card">
     <div class="card-header">
       <span>📥</span>
       <h2>Export Registrations</h2>
@@ -531,6 +623,28 @@ header .subtitle {
       </div>
       <div id="exportMsg" style="margin-top:10px;font-size:.8rem;color:#27AE60;display:none;"></div>
     </div>
+  </div>
+
+  <!-- Admin summary card — only visible in admin mode -->
+  <div class="admin-summary-card">
+    <div class="card-header" style="background:linear-gradient(135deg,#8B0000,#5C0000);border-bottom:2px solid #FFD700;">
+      <span>📊</span>
+      <h2 style="color:#FFD700;">Admin Dashboard</h2>
+    </div>
+    <div class="admin-summary-grid">
+      <div class="admin-summary-cell"><div class="admin-summary-num" id="adTotalReg">0</div><div class="admin-summary-lbl">REGISTRATIONS</div></div>
+      <div class="admin-summary-cell"><div class="admin-summary-num" id="adTotalPax">0</div><div class="admin-summary-lbl">PARTICIPANTS</div></div>
+      <div class="admin-summary-cell"><div class="admin-summary-num" id="adMahaAdults">0</div><div class="admin-summary-lbl">MAHA ADULTS</div></div>
+      <div class="admin-summary-cell"><div class="admin-summary-num" id="adMahaKids">0</div><div class="admin-summary-lbl">MAHA KIDS</div></div>
+      <div class="admin-summary-cell"><div class="admin-summary-num" id="adMahaTotal">0</div><div class="admin-summary-lbl">MAHA TOTAL</div></div>
+      <div class="admin-summary-cell"><div class="admin-summary-num" id="adSlotsCovered">0/12</div><div class="admin-summary-lbl">SLOTS COVERED</div></div>
+    </div>
+    <div style="padding:16px 20px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn-export" onclick="exportCSV()">⬇️ &nbsp;Download CSV</button>
+      <button class="btn-export btn-export-secondary" onclick="copyCSV()">📋 &nbsp;Copy to Clipboard</button>
+    </div>
+  </div>
+
   </div>
 
   <!-- Registered Teams -->
@@ -592,6 +706,31 @@ header .subtitle {
 </div><!-- /page-wrap -->
 
 <div id="toast"></div>
+
+<!-- Admin login button -->
+<div class="admin-login-wrap">
+  <button class="btn-admin-login" onclick="showAdminLogin()">🔐 Admin Login</button>
+</div>
+
+<!-- Admin login modal -->
+<div class="modal-overlay" id="adminLoginModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>🔐 Admin Login</h3>
+      <button class="modal-close" onclick="closeAdminLogin()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-note">Enter the admin password to unlock full admin access.</p>
+      <input class="modal-input admin-input" id="adminLoginPw" type="password"
+             placeholder="Admin password"
+             onkeydown="if(event.key==='Enter')doAdminLogin()"/>
+      <button class="btn-modal-delete" onclick="doAdminLogin()"
+        style="background:linear-gradient(135deg,#8B0000,#5C0000);margin-top:12px;">
+        🔐 &nbsp;Login as Admin
+      </button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ── Slot definitions ──────────────────────────────────────────
@@ -979,7 +1118,7 @@ function dismissCodeOverlay() {
 }
 
 // ── Delete modal ─────────────────────────────────────────────
-const ADMIN_PASSWORD = "Jai108Hanuman"; // ← change this to your own password
+const ADMIN_PASSWORD = "JaiHanuman108"; // ← change this to your own password
 let pendingDeleteId   = null;
 let pendingDeleteSlot = null;   // null = delete whole record; number = remove just that slot
 let activeModalTab    = "mycode";
@@ -1069,6 +1208,7 @@ function renderAll() {
   renderByTeam();
   renderCoverage();
   updateStats();
+  updateAdminStats();
 }
 
 function renderBySlot() {
@@ -1115,7 +1255,13 @@ function teamRow(t, showSlots=false, contextSlot=null) {
     <div class="reg-avatar">${initials}</div>
     <div class="reg-info">
       <div class="reg-name">${t.teamName}</div>
-      <div class="reg-leader">👥 ${t.leaderName?t.leaderName+" participants":""} &nbsp;·&nbsp; 📞 ${t.phone} &nbsp;·&nbsp; ✉️ ${t.email||""}${(t.mahaAdults||t.mahaKids)?` &nbsp;·&nbsp; 🍽️ Maha: ${t.mahaAdults||0}A+${t.mahaKids||0}K`:""}</div>
+      <div class="reg-leader">
+        👥 ${t.leaderName?t.leaderName+" participants":""}
+        &nbsp;·&nbsp;
+        <span class="sensitive">📞 ${t.phone} &nbsp;·&nbsp; ✉️ ${t.email||""}</span>
+        <span class="sensitive-placeholder">📞 ••••••••••</span>
+        ${(t.mahaAdults||t.mahaKids)?`&nbsp;·&nbsp; 🍽️ Maha: ${t.mahaAdults||0}A+${t.mahaKids||0}K`:""}
+      </div>
       <div class="reg-slots-tags">${slotTags}</div>
       ${t.notes?`<div style="font-size:.72rem;color:#888;margin-top:2px;font-style:italic;">💬 ${t.notes}</div>`:""}
       <div style="font-size:.68rem;color:#bbb;margin-top:3px;">Registered: ${t.registeredAt}</div>
@@ -1202,7 +1348,9 @@ function buildCSV() {
 }
 
 function checkExportAuth() {
-  const pw = document.getElementById("exportPw").value;
+  if (document.body.classList.contains("admin-mode")) return true;
+  const el = document.getElementById("exportPw");
+  const pw = el ? el.value : "";
   if (pw !== ADMIN_PASSWORD) { showToast("Incorrect admin password","error"); return false; }
   return true;
 }
@@ -1226,6 +1374,62 @@ function copyCSV() {
     showToast("📋 Copied! Paste into Excel or Google Sheets.","success");
   }).catch(() => showToast("Copy failed — try the Download button instead.","error"));
 }
+
+// ── Admin mode ────────────────────────────────────────────────
+function showAdminLogin() {
+  document.getElementById("adminLoginPw").value = "";
+  document.getElementById("adminLoginModal").classList.add("open");
+  setTimeout(()=>document.getElementById("adminLoginPw").focus(), 300);
+}
+function closeAdminLogin() {
+  document.getElementById("adminLoginModal").classList.remove("open");
+}
+function doAdminLogin() {
+  const pw = document.getElementById("adminLoginPw").value;
+  if (pw !== ADMIN_PASSWORD) {
+    shakeInput("adminLoginPw");
+    showToast("Incorrect password","error");
+    return;
+  }
+  closeAdminLogin();
+  enterAdminMode();
+}
+function enterAdminMode() {
+  document.body.classList.add("admin-mode");
+  document.getElementById("adminBar").classList.add("visible");
+  updateAdminStats();
+  showToast("🔐 Admin mode active","success", 3000);
+}
+function exitAdminMode() {
+  document.body.classList.remove("admin-mode");
+  document.getElementById("adminBar").classList.remove("visible");
+  showToast("Admin mode exited","success", 2000);
+}
+function updateAdminStats() {
+  if (!document.body.classList.contains("admin-mode")) return;
+  const totalReg    = registrations.length;
+  const totalPax    = registrations.reduce((s,r)=>s+(parseInt(r.leaderName)||0),0);
+  const mahaAdults  = registrations.reduce((s,r)=>s+(parseInt(r.mahaAdults)||0),0);
+  const mahaKids    = registrations.reduce((s,r)=>s+(parseInt(r.mahaKids)||0),0);
+  const mahaTotal   = mahaAdults + mahaKids;
+  const covered     = SLOTS.filter(sl=>registrations.some(r=>r.slots.includes(sl.num))).length;
+
+  const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  set("adTotalReg",   totalReg);
+  set("adTotalPax",   totalPax);
+  set("adMahaAdults", mahaAdults);
+  set("adMahaKids",   mahaKids);
+  set("adMahaTotal",  mahaTotal);
+  set("adSlotsCovered", `${covered}/12`);
+  set("adminMahaTotal", `🍽️ Maha: ${mahaTotal}`);
+  set("adminMahaAdults",`👨 Adults: ${mahaAdults}`);
+  set("adminMahaKids",  `👧 Kids: ${mahaKids}`);
+}
+
+// Close admin login on overlay click
+document.addEventListener("click", e=>{
+  if(e.target.id==="adminLoginModal") closeAdminLogin();
+});
 
 // ── Init ──────────────────────────────────────────────────────
 // Always render slots immediately so the grid is never blank
