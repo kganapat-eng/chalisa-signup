@@ -376,6 +376,21 @@ header .subtitle {
   .stats-strip .stat-pill{min-width:90px;}
 }
 /* ── Host section ── */
+/* ── Follow-on banner in header ── */
+.inv-followon {
+  margin:10px 20px 4px;
+  background:rgba(180,60,0,0.75);
+  border:1px solid rgba(220,120,20,0.6);
+  border-radius:10px;padding:10px 16px;
+  text-align:center;
+}
+.inv-followon-line {
+  font-family:'Lato',sans-serif;font-size:.8rem;
+  color:rgba(255,255,255,0.9);line-height:1.7;
+}
+.inv-followon-line strong {
+  color:#FFD700;font-weight:700;
+}
 .inv-host {
   text-align:center;padding:14px 20px 18px;
   border-top:1px solid rgba(255,215,0,0.2);
@@ -509,6 +524,10 @@ body.admin-mode .sensitive-placeholder { display:none; }
     <!-- saffron date pill matching the invite -->
     <div class="inv-date-pill">
       29 Aug 2026, 7:00 AM &nbsp;→&nbsp; 30 Aug 2026, 7:00 AM
+    </div>
+    <div class="inv-followon">
+      <div class="inv-followon-line">Akhanda parayanam will be followed by Harathi and</div>
+      <div class="inv-followon-line"><strong>MS Ramarao Sundarakanda Parayanam</strong> until 10:00 AM on 30th August</div>
     </div>
     <div class="subtitle" style="margin-top:12px;">
       Participant Sign-Up Portal &nbsp;·&nbsp; 15-Min Overlap Between Slots
@@ -1119,7 +1138,7 @@ function dismissCodeOverlay() {
 }
 
 // ── Delete modal ─────────────────────────────────────────────
-const ADMIN_PASSWORD = "JaiHanuman108"; // ← change this to your own password
+const ADMIN_PASSWORD = "Jai108Hanuman"; // ← change this to your own password
 let pendingDeleteId   = null;
 let pendingDeleteSlot = null;   // null = delete whole record; number = remove just that slot
 let activeModalTab    = "mycode";
