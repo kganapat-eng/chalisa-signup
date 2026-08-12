@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -402,7 +401,7 @@ header .subtitle {
     <div class="inv-subtitle">A Continuous 24-Hour Recitation</div>
     <!-- saffron date pill matching the invite -->
     <div class="inv-date-pill">
-      18 Apr 2026, 6:00 AM &nbsp;→&nbsp; 19 Apr 2026, 6:00 AM
+      29 Aug 2026, 7:00 AM &nbsp;→&nbsp; 30 Aug 2026, 7:00 AM
     </div>
     <div class="subtitle" style="margin-top:12px;">
       Participant Sign-Up Portal &nbsp;·&nbsp; 15-Min Overlap Between Slots
@@ -425,10 +424,10 @@ header .subtitle {
     <div class="card-body">
       <!-- Legend -->
       <div class="legend">
-        <span class="legend-item"><span class="legend-dot" style="background:#FFB347"></span>Morning (6AM–2PM)</span>
-        <span class="legend-item"><span class="legend-dot" style="background:#7B9DD6"></span>Evening (2PM–10PM)</span>
-        <span class="legend-item"><span class="legend-dot" style="background:#4A6B9E"></span>Night (10PM–4AM)</span>
-        <span class="legend-item"><span class="legend-dot" style="background:#9B59B6"></span>Brahma Muhurta (4AM–6AM)</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#FFB347"></span>Morning (7AM–3PM)</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#7B9DD6"></span>Evening (3PM–11PM)</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#4A6B9E"></span>Night (11PM–5AM)</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#9B59B6"></span>Brahma Muhurta (5AM–7AM)</span>
       </div>
 
       <!-- Slot picker -->
@@ -579,20 +578,20 @@ header .subtitle {
 <script>
 // ── Slot definitions ──────────────────────────────────────────
 // Each slot starts 2h after previous start; runs 2h15m (15-min overlap with next team).
-// Slot 12 is 2h only — ends exactly at 6:00 AM.
+// Slot 12 is 2h only — ends exactly at 7:00 AM.
 const SLOTS = [
-  {num:1,  start:"06:00 AM", end:"08:15 AM", period:"Early Morning",   type:"day",    dur:"2h 15m"},
-  {num:2,  start:"08:00 AM", end:"10:15 AM", period:"Morning",          type:"day",    dur:"2h 15m"},
-  {num:3,  start:"10:00 AM", end:"12:15 PM", period:"Mid-Morning",      type:"day",    dur:"2h 15m"},
-  {num:4,  start:"12:00 PM", end:"02:15 PM", period:"Afternoon",        type:"day",    dur:"2h 15m"},
-  {num:5,  start:"02:00 PM", end:"04:15 PM", period:"Mid-Afternoon",    type:"eve",    dur:"2h 15m"},
-  {num:6,  start:"04:00 PM", end:"06:15 PM", period:"Evening",          type:"eve",    dur:"2h 15m"},
-  {num:7,  start:"06:00 PM", end:"08:15 PM", period:"Late Evening",     type:"eve",    dur:"2h 15m"},
-  {num:8,  start:"08:00 PM", end:"10:15 PM", period:"Night",            type:"night",  dur:"2h 15m"},
-  {num:9,  start:"10:00 PM", end:"12:15 AM", period:"Late Night",       type:"night",  dur:"2h 15m"},
-  {num:10, start:"12:00 AM", end:"02:15 AM", period:"Midnight",         type:"night",  dur:"2h 15m"},
-  {num:11, start:"02:00 AM", end:"04:15 AM", period:"Deep Night",       type:"night",  dur:"2h 15m"},
-  {num:12, start:"04:00 AM", end:"06:00 AM", period:"Brahma Muhurta ✨", type:"brahma", dur:"2h"},
+  {num:1,  start:"07:00 AM", end:"09:15 AM", period:"Early Morning",   type:"day",    dur:"2h 15m"},
+  {num:2,  start:"09:00 AM", end:"11:15 AM", period:"Morning",          type:"day",    dur:"2h 15m"},
+  {num:3,  start:"11:00 AM", end:"01:15 PM", period:"Mid-Morning",      type:"day",    dur:"2h 15m"},
+  {num:4,  start:"01:00 PM", end:"03:15 PM", period:"Afternoon",        type:"day",    dur:"2h 15m"},
+  {num:5,  start:"03:00 PM", end:"05:15 PM", period:"Mid-Afternoon",    type:"eve",    dur:"2h 15m"},
+  {num:6,  start:"05:00 PM", end:"07:15 PM", period:"Evening",          type:"eve",    dur:"2h 15m"},
+  {num:7,  start:"07:00 PM", end:"09:15 PM", period:"Late Evening",     type:"eve",    dur:"2h 15m"},
+  {num:8,  start:"09:00 PM", end:"11:15 PM", period:"Night",            type:"night",  dur:"2h 15m"},
+  {num:9,  start:"11:00 PM", end:"01:15 AM", period:"Late Night",       type:"night",  dur:"2h 15m"},
+  {num:10, start:"01:00 AM", end:"03:15 AM", period:"Midnight",         type:"night",  dur:"2h 15m"},
+  {num:11, start:"03:00 AM", end:"05:15 AM", period:"Deep Night",       type:"night",  dur:"2h 15m"},
+  {num:12, start:"05:00 AM", end:"07:00 AM", period:"Brahma Muhurta ✨", type:"brahma", dur:"2h"},
 ];
 
 let selectedSlots = new Set();
@@ -610,15 +609,15 @@ const FB_PATH      = "chalisa_registrations"; // path in your Realtime DB
 //     Choose "Start in TEST mode" (allows read/write for 30 days)
 //     Then update the rules to:
 //       { "rules": { ".read": true, ".write": true } }
-  const firebaseConfig = {
-    apiKey: "AIzaSyB1Y0MGH9eByyQncm4Ffnd2r1p6cOEkf5g",
-    authDomain: "chalisa-signup.firebaseapp.com",
-    databaseURL: "https://chalisa-signup-default-rtdb.firebaseio.com",
-    projectId: "chalisa-signup",
-    storageBucket: "chalisa-signup.firebasestorage.app",
-    messagingSenderId: "320490076399",
-    appId: "1:320490076399:web:827ae694ebe9b452be031a"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyB1Y0MGH9eByyQncm4Ffnd2r1p6cOEkf5g",
+  authDomain: "chalisa-signup.firebaseapp.com",
+  databaseURL: "https://chalisa-signup-default-rtdb.firebaseio.com",
+  projectId: "chalisa-signup",
+  storageBucket: "chalisa-signup.firebasestorage.app",
+  messagingSenderId: "320490076399",
+  appId: "1:320490076399:web:827ae694ebe9b452be031a"
+};
 
 // ── Initialise Firebase ───────────────────────────────────────
 function initFirebase() {
@@ -701,7 +700,7 @@ function renderSlotGrid() {
     d.onclick = () => toggleSlot(sl.num);
     d.innerHTML = `
       <div class="slot-check">✓</div>
-      <div class="slot-num">SLOT ${sl.num} — ${sl.num<=8?'APR 18':sl.num===9?'APR 18/19':'APR 19'}</div>
+      <div class="slot-num">SLOT ${sl.num} — ${sl.num<=9?'AUG 29':sl.num===10?'AUG 29/30':'AUG 30'}</div>
       <div class="slot-time">${sl.start} – ${sl.end}</div>
       <div class="slot-period">${sl.period}</div>
       <div class="slot-dur">${sl.dur}${sl.num<12?' · 15 min overlap':' · No overlap'}</div>
